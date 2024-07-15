@@ -34,29 +34,6 @@
     font-size: 1em;
 }
 
-.form-button2 {
-    width: 100%;
-    border-radius: 10px;
-    border: 2px solid #c2c5ff;
-    padding: 0.8em 1.2em;
-    font-size: 1em;
-    font-weight: 500;
-    font-family: inherit;
-    cursor: pointer;
-    transition: border-color 0.25s, background-color 0.25s;
-    background-color: #535cfd;
-    color: #fff;
-}
-
-.form-button2:hover {
-    border-color: #535cfd;
-    background-color: #3a47d5;
-}
-
-.form-button2:focus,
-.form-button2:focus-visible {
-    outline: 4px auto -webkit-focus-ring-color;
-}
 
 
 

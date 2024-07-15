@@ -1,3 +1,5 @@
+import { Header } from "../../components/headers/header";
+import { Home } from "../home/home";
 import { loginRegister } from "./loginRegister";
 import "./register.css";
 
@@ -55,13 +57,13 @@ const Register = (mainElement) => {
 
     form.addEventListener("submit", (event) => {
         event.preventDefault();
-        submit(inputUn.value, inputPass.value, inputEmail.value);
+        submit(inputUn.value, inputPass.value, inputEmail.value, form);
     });
 
     mainElement.appendChild(card);
 };
 
-const submit = async (userName, password, email) => {
+const submit = async (userName, password, email, form) => {
     const userObject = JSON.stringify({ userName, password, email });
 
     const options = {
@@ -72,17 +74,61 @@ const submit = async (userName, password, email) => {
         }
     };
 
+    const loadingIndicator = document.createElement("p");
+    loadingIndicator.textContent = "Cargando...";
+    loadingIndicator.style.display = "none";
+    form.appendChild(loadingIndicator);
+
     try {
-        const response = await fetch("http://localhost:3000/api/v1/users/register", options);
+        loadingIndicator.style.display = "block";
+        let response;
+        await new Promise((resolve, reject) => {
+            setTimeout(() => {
+                fetch("http://localhost:3000/api/v1/users/register", options)
+                    .then(res => {
+                        response = res;
+                        resolve();
+                    })
+                    .catch(reject);
+            }, 4000);
+        });
+
+        loadingIndicator.style.display = "none";
+
         if (response.status === 400) {
             console.error("Usuario o contraseña incorrectos");
         } else {
             console.log("Usuario registrado con éxito");
             alert("Usuario registrado con éxito");
+
+            loadingIndicator.style.display = "block";
+            let loginResponse;
+            await new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    fetch("http://localhost:3000/api/v1/users/login", options)
+                        .then(res => {
+                            loginResponse = res;
+                            resolve();
+                        })
+                        .catch(reject);
+                }, 4000);
+            });
+
+            loadingIndicator.style.display = "none";
+
+            if (loginResponse.status === 200) {
+                console.log("Usuario logueado con éxito");
+                const respuestaFinal = await loginResponse.json();
+                localStorage.setItem("token", respuestaFinal.token);
+                localStorage.setItem("user", JSON.stringify(respuestaFinal.user));
+            } else {
+                console.error("Error al iniciar sesión");
+            }
         }
     } catch (error) {
         console.error("Error al realizar la petición:", error);
     }
 
-    loginRegister();
+    Home();
+    Header()
 };

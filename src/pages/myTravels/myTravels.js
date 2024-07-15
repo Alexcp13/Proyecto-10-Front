@@ -1,10 +1,17 @@
 
+import { loginRegister } from "../loginRegister/loginRegister";
 import "./myTravels.css";
 
 export const myTravels = async (eventId) => {
     const main = document.querySelector("main");
 
     main.innerHTML = "";
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+        loginRegister();
+        return;
+    }
 
     const res = await fetch(`http://localhost:3000/api/v1/events/${eventId}/myEvents`, {
         method: "GET",
@@ -166,6 +173,7 @@ const deleteEvent = async (eventId) => {
             body: JSON.stringify({ userId: user._id })
 
         });
+
 
 
         const data = await response.json();

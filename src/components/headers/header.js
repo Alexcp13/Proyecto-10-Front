@@ -44,7 +44,7 @@ export const Header = () => {
 
         if (route.text === "Login" && localStorage.getItem("token")) {
             const user = JSON.parse(localStorage.getItem("user"));
-            a.textContent = user.userName;
+            a.textContent = "Logout";
 
             a.addEventListener("click", () => {
                 localStorage.removeItem("token");

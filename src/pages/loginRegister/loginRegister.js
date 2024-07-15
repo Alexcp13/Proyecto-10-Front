@@ -74,9 +74,27 @@ const submit = async (userName, password, form) => {
             "Content-Type": "application/json"
         }
     };
+    const loadingIndicator = document.createElement("p");
+    loadingIndicator.textContent = "Cargando...";
+    loadingIndicator.style.display = "none";
+    form.appendChild(loadingIndicator);
 
     try {
-        const res = await fetch("http://localhost:3000/api/v1/users/login", options);
+        loadingIndicator.style.display = "block";
+        let res;
+        await new Promise((resolve, reject) => {
+            setTimeout(() => {
+                fetch("http://localhost:3000/api/v1/users/login", options)
+                    .then(response => {
+                        res = response;
+                        resolve();
+                    })
+                    .catch(reject);
+            }, 4000);
+        });
+
+        loadingIndicator.style.display = "none";
+
         if (res.status === 400) {
             let pError = document.querySelector(".error");
 

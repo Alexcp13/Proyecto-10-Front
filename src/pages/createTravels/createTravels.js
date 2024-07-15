@@ -69,6 +69,31 @@ const submit = async (e) => {
 
     const [inputTitle, inputDate, inputLocation, inputDescription, inputImg] = e.target;
 
+
+    let errorPara = document.querySelector(".error");
+
+    if (!inputTitle.value || !inputDate.value || !inputLocation.value || !inputDescription.value) {
+        let errorPara = document.querySelector(".error");
+        if (!errorPara) {
+            errorPara = document.createElement("p");
+            errorPara.classList.add("error");
+            errorPara.style.color = "red";
+            e.target.appendChild(errorPara);
+        }
+        errorPara.textContent = "Necesitas rellenar todos los campos para crear el evento";
+    }
+
+
+
+
+
+
+
+
+
+
+
+
     const body = new FormData();
 
     body.append("title", inputTitle.value)
@@ -76,8 +101,9 @@ const submit = async (e) => {
     body.append("location", inputLocation.value)
     body.append("description", inputDescription.value)
     body.append("eventImg", inputImg.files[0])
-    const token = localStorage.getItem("token");
 
+
+    const token = localStorage.getItem("token");
     if (!token) {
         loginRegister();
         return;
