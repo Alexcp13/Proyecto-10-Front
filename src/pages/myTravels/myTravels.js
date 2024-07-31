@@ -1,4 +1,5 @@
 
+import { apiFetch } from "../../application/apiFetch";
 import { loginRegister } from "../loginRegister/loginRegister";
 import "./myTravels.css";
 
@@ -13,15 +14,10 @@ export const myTravels = async (eventId) => {
         return;
     }
 
-    const res = await fetch(`http://localhost:3000/api/v1/events/${eventId}/myEvents`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-    });
+    const events = await apiFetch(`/events/${eventId}/myEvents`, 'GET', null, token);
 
-    const events = await res.json();
+
+
     doEvents(events, main);
 };
 
@@ -56,7 +52,7 @@ const doEvents = (events, mainElement) => {
         const user = JSON.parse(localStorage.getItem("user"));
 
 
-        console.log(event.creatorId)
+
         if (user._id === event.createdBy || user.role === 'admin') {
             deleteButton.style.display = "block";
             editButton.style.display = "block";
@@ -107,16 +103,18 @@ const updateEvent = async (eventId, form) => {
     };
 
     try {
-        const res = await fetch(`http://localhost:3000/api/v1/events/${eventId}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-            body: JSON.stringify(updateEventData)
-        });
+        const token = localStorage.getItem("token");
+        const res = await apiFetch(`/events/${eventId}`, 'PATCH', updateEventData, token);
 
-        if (!res.ok) {
+
+
+
+        if (!res) {
+            throw new Error(`Error al unirse al evento: ${res.statusText}`);
+        }
+
+
+        if (!res) {
             throw new Error(`Error al actualizar el evento: ${res.statusText}`);
         }
 
@@ -134,16 +132,10 @@ const removeAssistant = async (eventId) => {
             throw new Error("Usuario no encontrado en localStorage");
         }
 
-        const res = await fetch(`http://localhost:3000/api/v1/events/${eventId}/remove`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-            body: JSON.stringify({ userId: user._id })
-        });
+        const token = localStorage.getItem("token");
+        const res = await apiFetch(`/events/${eventId}/remove`, 'PATCH', { userId: user._id }, token);
 
-        if (!res.ok) {
+        if (!res) {
             throw new Error(`Error al salirse del evento: ${res.statusText}`);
         }
 
@@ -164,19 +156,13 @@ const deleteEvent = async (eventId) => {
         if (!user) {
             throw new Error("Usuario no encontrado en localStorage");
         }
-        const response = await fetch(`http://localhost:3000/api/v1/events/${eventId}`, {
-            method: 'DELETE',
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-            body: JSON.stringify({ userId: user._id })
-
-        });
+        const token = localStorage.getItem("token");
+        const res = await apiFetch(`/events/${eventId}`, 'DELETE', { userId: user._id }, token);
+        if (!res) {
+            throw new Error(`Error al borrar: ${res.statusText}`);
+        }
 
 
-
-        const data = await response.json();
         console.log('Evento eliminado:', data);
 
     } catch (error) {

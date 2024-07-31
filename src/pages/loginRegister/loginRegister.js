@@ -1,4 +1,6 @@
 
+import { apiFetch } from "../../application/apiFetch";
+import { FieldForm } from "../../components/FieldForms/FieldForm";
 import { Header } from "../../components/headers/header";
 import { Home } from "../home/home";
 import "./loginRegister.css";
@@ -21,70 +23,51 @@ export const loginRegister = () => {
 };
 
 const Login = (mainElement) => {
-    const initSesion = document.createElement("h2");
-    const form = document.createElement("form");
-    const pLogin = document.createElement("p");
-    const pA = document.createElement("a");
-
-    const inputUn = document.createElement("input");
-    const inputPass = document.createElement("input");
-    const button = document.createElement("button");
-
-    inputUn.placeholder = "User Name";
-    inputPass.placeholder = "Password";
-    button.textContent = "Login";
-    initSesion.textContent = "Log In";
-
-    inputPass.type = "password";
-
     const card = document.createElement("div");
     card.className = "card";
 
-    card.appendChild(initSesion);
-    card.appendChild(form);
+    const formHTML = `
+        <h2>Log In</h2>
+        <form>
+            ${FieldForm("User Name", "text", "username")}
+            ${FieldForm("Password", "password", "password")}
+            <button>Login</button>
+            <p><a href="#">¿Todavía no estás registrado?</a></p>
+        </form>
+    `;
 
-    pLogin.appendChild(pA);
-    pA.textContent = "¿Todavía no estás registrado?";
-    pA.href = "#";
+    card.innerHTML = formHTML;
+    mainElement.appendChild(card);
+
+    const form = card.querySelector("form");
+    const inputUn = form.querySelector(".username");
+    const inputPass = form.querySelector(".password");
+    const pA = form.querySelector("a");
+
     pA.addEventListener('click', (e) => {
         e.preventDefault();
         register();
     });
 
-    form.appendChild(inputUn);
-    form.appendChild(inputPass);
-    form.appendChild(button);
-    form.appendChild(pLogin);
-
     form.addEventListener("submit", (e) => {
         e.preventDefault();
         submit(inputUn.value, inputPass.value, form);
     });
-
-    mainElement.appendChild(card);
 };
-
 const submit = async (userName, password, form) => {
-    const objetoFinal = JSON.stringify({ userName, password });
-
-    const options = {
-        method: "POST",
-        body: objetoFinal,
-        headers: {
-            "Content-Type": "application/json"
-        }
-    };
+    const objetoFinal = { userName, password };
     const loadingIndicator = document.createElement("p");
     loadingIndicator.textContent = "Cargando...";
-    loadingIndicator.style.display = "none";
+    loadingIndicator.style.display = "block";
     form.appendChild(loadingIndicator);
 
     try {
-        loadingIndicator.style.display = "block";
         let res;
+
+
         await new Promise((resolve, reject) => {
             setTimeout(() => {
-                fetch("http://localhost:3000/api/v1/users/login", options)
+                apiFetch("/users/login", "POST", objetoFinal)
                     .then(response => {
                         res = response;
                         resolve();
@@ -95,7 +78,7 @@ const submit = async (userName, password, form) => {
 
         loadingIndicator.style.display = "none";
 
-        if (res.status === 400) {
+        if (!res.token) {
             let pError = document.querySelector(".error");
 
             if (!pError) {
@@ -114,12 +97,22 @@ const submit = async (userName, password, form) => {
             pError.remove();
         }
 
-        const respuestaFinal = await res.json();
-        localStorage.setItem("token", respuestaFinal.token);
-        localStorage.setItem("user", JSON.stringify(respuestaFinal.user));
+        localStorage.setItem("token", res.token);
+        localStorage.setItem("user", JSON.stringify(res.user));
         Home();
         Header();
     } catch (error) {
-        console.error("Error en la solicitud de login", error);
+        loadingIndicator.style.display = "none";
+        console.error("Error en la solicitud de login", error.message);
+        let pError = document.querySelector(".error");
+
+        if (!pError) {
+            pError = document.createElement("p");
+            pError.classList.add("error");
+            pError.style.color = "red";
+            form.appendChild(pError);
+        }
+
+        pError.textContent = "Error en la solicitud de login: " + error.message;
     }
 };

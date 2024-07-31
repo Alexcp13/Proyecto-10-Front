@@ -1,3 +1,5 @@
+
+import { apiFetch } from "../../application/apiFetch";
 import { loginRegister } from "../loginRegister/loginRegister";
 import "./home.css";
 
@@ -7,8 +9,7 @@ export const Home = async () => {
 
     main.innerHTML = "";
 
-    const res = await fetch("http://localhost:3000/api/v1/events");
-    const events = await res.json();
+    const events = await apiFetch("/events")
     doEvents(events, main);
 };
 
@@ -77,14 +78,12 @@ const addAssistant = async (eventId, assistants) => {
             loginRegister();
             return;
         }
-        const res = await fetch(`http://localhost:3000/api/v1/events/${eventId}/add`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-        });
-        if (!res.ok) {
+
+        const endpoint = `/events/${eventId}/add`;
+        const res = await apiFetch(endpoint, 'PATCH', null, token);
+        console.log(res);
+
+        if (!res) {
             throw new Error(`Error al unirse al evento: ${res.statusText}`);
         }
 
@@ -100,20 +99,17 @@ const addAssistant = async (eventId, assistants) => {
 
 const removeAssistant = async (eventId, assistants) => {
     try {
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (!user) {
-            throw new Error("Usuario no encontrado en localStorage");
+        const token = localStorage.getItem("token");
+        if (!token) {
+            loginRegister();
+            return;
         }
 
-        const res = await fetch(`http://localhost:3000/api/v1/events/${eventId}/remove`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-            body: JSON.stringify({ userId: user._id })
-        });
-        if (!res.ok) {
+        const endpoint = `/events/${eventId}/remove`;
+        const res = await apiFetch(endpoint, 'PATCH', null, token);
+        console.log(res);
+
+        if (!res) {
             throw new Error(`Error al unirse al evento: ${res.statusText}`);
         }
 

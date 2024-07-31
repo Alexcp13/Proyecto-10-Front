@@ -1,3 +1,4 @@
+import { FieldForm } from "../../components/FieldForms/FieldForm";
 import { Header } from "../../components/headers/header";
 import { Home } from "../home/home";
 import { loginRegister } from "./loginRegister";
@@ -16,75 +17,61 @@ export const register = () => {
 };
 
 const Register = (mainElement) => {
-    const registerTitle = document.createElement("h2");
-    const form = document.createElement("form");
-    const pRegister = document.createElement("p");
-    const pA = document.createElement("a");
-
-    const inputUn = document.createElement("input");
-    const inputEmail = document.createElement("input");
-    const inputPass = document.createElement("input");
-    const button = document.createElement("button");
-
-    inputUn.placeholder = "User Name";
-    inputEmail.placeholder = "Email";
-    inputPass.placeholder = "Password";
-    button.textContent = "Register";
-    registerTitle.textContent = "Register";
-
-    inputEmail.type = "email";
-    inputPass.type = "password";
-
     const card = document.createElement("div");
     card.className = "card";
 
-    card.appendChild(registerTitle);
-    card.appendChild(form);
+    const formHTML = `
+        <h2>Register</h2>
+        <form>
+            ${FieldForm("User Name", "text", "username")}
+            ${FieldForm("Email", "email", "email")}
+            ${FieldForm("Password", "password", "password")}
+            <button>Register</button>
+            <p><a href="#">¿Ya estás registrado? Inicia sesión</a></p>
+        </form>
+    `;
 
-    pRegister.appendChild(pA);
-    pA.textContent = "¿Ya estás registrado? Inicia sesión";
-    pA.href = "#";
+    card.innerHTML = formHTML;
+    mainElement.appendChild(card);
+
+    const form = card.querySelector("form");
+    const inputUn = form.querySelector(".username");
+    const inputEmail = form.querySelector(".email");
+    const inputPass = form.querySelector(".password");
+    const pA = form.querySelector("a");
+
     pA.addEventListener('click', (e) => {
         e.preventDefault();
         loginRegister();
     });
 
-    form.appendChild(inputUn);
-    form.appendChild(inputEmail);
-    form.appendChild(inputPass);
-    form.appendChild(button);
-    form.appendChild(pRegister);
-
     form.addEventListener("submit", (event) => {
         event.preventDefault();
         submit(inputUn.value, inputPass.value, inputEmail.value, form);
     });
-
-    mainElement.appendChild(card);
 };
 
 const submit = async (userName, password, email, form) => {
-    const userObject = JSON.stringify({ userName, password, email });
-
-    const options = {
-        method: "POST",
-        body: userObject,
-        headers: {
-            "Content-Type": "application/json"
-        }
-    };
+    const userObject = { userName, password, email };
 
     const loadingIndicator = document.createElement("p");
     loadingIndicator.textContent = "Cargando...";
-    loadingIndicator.style.display = "none";
+    loadingIndicator.style.display = "block";
     form.appendChild(loadingIndicator);
 
     try {
-        loadingIndicator.style.display = "block";
         let response;
+
+
         await new Promise((resolve, reject) => {
             setTimeout(() => {
-                fetch("http://localhost:3000/api/v1/users/register", options)
+                fetch("http://localhost:3000/api/v1/users/register", {
+                    method: "POST",
+                    body: JSON.stringify(userObject),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                })
                     .then(res => {
                         response = res;
                         resolve();
@@ -96,39 +83,36 @@ const submit = async (userName, password, email, form) => {
         loadingIndicator.style.display = "none";
 
         if (response.status === 400) {
-            console.error("Usuario o contraseña incorrectos");
-        } else {
-            console.log("Usuario registrado con éxito");
-            alert("Usuario registrado con éxito");
+            console.error("Error al registrar el usuario");
+            alert("Error al registrar el usuario");
+            return;
+        }
 
-            loadingIndicator.style.display = "block";
-            let loginResponse;
-            await new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    fetch("http://localhost:3000/api/v1/users/login", options)
-                        .then(res => {
-                            loginResponse = res;
-                            resolve();
-                        })
-                        .catch(reject);
-                }, 4000);
-            });
+        console.log("Usuario registrado con éxito");
+        alert("Usuario registrado con éxito");
 
-            loadingIndicator.style.display = "none";
 
-            if (loginResponse.status === 200) {
-                console.log("Usuario logueado con éxito");
-                const respuestaFinal = await loginResponse.json();
-                localStorage.setItem("token", respuestaFinal.token);
-                localStorage.setItem("user", JSON.stringify(respuestaFinal.user));
-            } else {
-                console.error("Error al iniciar sesión");
+        const loginResponse = await fetch("http://localhost:3000/api/v1/users/login", {
+            method: "POST",
+            body: JSON.stringify(userObject),
+            headers: {
+                "Content-Type": "application/json"
             }
+        });
+
+        if (loginResponse.status === 200) {
+            console.log("Usuario logueado con éxito");
+            const respuestaFinal = await loginResponse.json();
+            localStorage.setItem("token", respuestaFinal.token);
+            localStorage.setItem("user", JSON.stringify(respuestaFinal.user));
+            Home();
+            Header();
+        } else {
+            console.error("Error al iniciar sesión");
+            alert("Error al iniciar sesión");
         }
     } catch (error) {
+        loadingIndicator.style.display = "none";
         console.error("Error al realizar la petición:", error);
     }
-
-    Home();
-    Header()
 };

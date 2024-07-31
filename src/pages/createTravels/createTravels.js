@@ -1,8 +1,8 @@
+import { FieldForm } from "../../components/FieldForms/FieldForm";
 import { Home } from "../home/home";
 import { loginRegister } from "../loginRegister/loginRegister";
 
-import "./createTravels.css"
-
+import "./createTravels.css";
 
 export const createEvent = () => {
     const main = document.querySelector("main");
@@ -14,65 +14,38 @@ export const createEvent = () => {
     eventDiv.id = "create-event";
     main.appendChild(eventDiv);
 };
-
 const createEventForm = (mainElement) => {
-    const form = document.createElement("form");
-    form.className = "event-form";
+    const formHTML = `
+        <form class="event-form">
+            <h2>Create your travel</h2>
+            ${FieldForm("Event Title", "text", "form-input", 50)}
+            ${FieldForm("Event Date", "date", "form-input")}
+            ${FieldForm("Event Location", "text", "form-input", 100)}
+            ${FieldForm("Event Description", "text", "form-input", 300)}
+            ${FieldForm("Event Image", "file", "form-input")}
+            <button class="form-button">Create Event</button>
+        </form>
+    `;
 
-    const h2Create = document.createElement("h2")
-    h2Create.textContent = "Create your travel"
+    mainElement.innerHTML = formHTML;
 
-    const inputTitle = document.createElement("input");
-    inputTitle.className = "form-input";
-    inputTitle.placeholder = "Event Title";
-    inputTitle.maxLength = 50;
-
-    const inputDate = document.createElement("input");
-    inputDate.type = "date";
-    inputDate.className = "form-input";
-    inputDate.placeholder = "Event Date";
-
-    const inputLocation = document.createElement("input");
-    inputLocation.className = "form-input";
-    inputLocation.placeholder = "Event Location";
-    inputLocation.maxLength = 100;
-
-    const inputDescription = document.createElement("input");
-    inputDescription.className = "form-input";
-    inputDescription.placeholder = "Event Description";
-    inputDescription.maxLength = 300;
-
-    const inputImg = document.createElement("input");
-    inputImg.className = "form-input";
-    inputImg.type = "file";
-
-    const button = document.createElement("button");
-    button.className = "form-button";
-    button.textContent = "Create Event";
-
-
-    form.appendChild(h2Create);
-    form.appendChild(inputTitle);
-    form.appendChild(inputDate);
-    form.appendChild(inputLocation);
-    form.appendChild(inputDescription);
-    form.appendChild(inputImg);
-    form.appendChild(button);
-
-    mainElement.appendChild(form);
-
+    const form = mainElement.querySelector("form");
     form.addEventListener("submit", submit);
 };
-
 const submit = async (e) => {
     e.preventDefault();
 
-    const [inputTitle, inputDate, inputLocation, inputDescription, inputImg] = e.target;
-
+    const [inputTitle, inputDate, inputLocation, inputDescription, inputImg] =
+        e.target;
 
     let errorPara = document.querySelector(".error");
 
-    if (!inputTitle.value || !inputDate.value || !inputLocation.value || !inputDescription.value) {
+    if (
+        !inputTitle.value ||
+        !inputDate.value ||
+        !inputLocation.value ||
+        !inputDescription.value
+    ) {
         let errorPara = document.querySelector(".error");
         if (!errorPara) {
             errorPara = document.createElement("p");
@@ -80,28 +53,17 @@ const submit = async (e) => {
             errorPara.style.color = "red";
             e.target.appendChild(errorPara);
         }
-        errorPara.textContent = "Necesitas rellenar todos los campos para crear el evento";
+        errorPara.textContent =
+            "Necesitas rellenar todos los campos para crear el evento";
     }
-
-
-
-
-
-
-
-
-
-
-
 
     const body = new FormData();
 
-    body.append("title", inputTitle.value)
-    body.append("date", inputDate.value)
-    body.append("location", inputLocation.value)
-    body.append("description", inputDescription.value)
-    body.append("eventImg", inputImg.files[0])
-
+    body.append("title", inputTitle.value);
+    body.append("date", inputDate.value);
+    body.append("location", inputLocation.value);
+    body.append("description", inputDescription.value);
+    body.append("eventImg", inputImg.files[0]);
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -112,21 +74,16 @@ const submit = async (e) => {
     const res = await fetch("http://localhost:3000/api/v1/events", {
         method: "POST",
         headers: {
-
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: body
+        body: body,
     });
     const response = await res.json();
 
     if (res.status === 201) {
-
         console.log("Event created!");
         Home();
     } else {
-
         console.error("Error creating event");
     }
-
-
 };
